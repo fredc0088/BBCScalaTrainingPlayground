@@ -6,7 +6,9 @@ object MyDistance {
 
   trait Distance {
 
-    type T = this.type
+    self =>
+
+    type T = self.type
 
     val v: Double
     val conversion: Double
@@ -31,19 +33,19 @@ object MyDistance {
     }
 
     def +(other: Distance)(implicit manifest: ClassTag[T]): T = {
-      val result = this.toMetre + other.toMetre
+      val result = self.toMetre + other.toMetre
       wrap(manifest, convertBack(result))
     }
 
     def -(other: Distance)(implicit manifest: ClassTag[T]): T = {
-      val result = this.toMetre - other.toMetre
+      val result = self.toMetre - other.toMetre
       wrap(manifest, convertBack(result))
     }
 
     def ==(other: Distance): Boolean =
       this.toMetre == other.toMetre
 
-    override def toString: String = s"${this.getClass.getSimpleName}s: ${v}"
+    override def toString: String = s"${this.getClass.getSimpleName}s: $v"
   }
 
   case class Centimetre(v: Double) extends Distance {

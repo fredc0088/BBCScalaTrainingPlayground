@@ -4,7 +4,11 @@ import scala.reflect.ClassTag
 
 object MyTemperature {
     sealed trait Temperature {
-      type T = this.type
+
+      self =>
+
+      type T = self.type
+
       val v: Double
 
       protected def toCelsius: Double
@@ -20,17 +24,17 @@ object MyTemperature {
       import DoubleBox._
 
       private def wrap(c: ClassTag[T], value: DoubleBox) = {
-        val m = c.runtimeClass.getConstructor(classOf[Double])
-        m.newInstance(value.unboxVal).asInstanceOf[T]
+        val constructor = c.runtimeClass.getConstructor(classOf[Double])
+        constructor.newInstance(value.unboxVal).asInstanceOf[T]
       }
 
       def +(other: Temperature)(implicit manifest: ClassTag[T]): T = {
-        val result = this.toCelsius + other.toCelsius
+        val result = self.toCelsius + other.toCelsius
         wrap(manifest, convertBack(result))
       }
 
       def -(other: Temperature)(implicit manifest: ClassTag[T]): T = {
-        val result = this.toCelsius - other.toCelsius
+        val result = self.toCelsius - other.toCelsius
         wrap(manifest, convertBack(result))
       }
 
