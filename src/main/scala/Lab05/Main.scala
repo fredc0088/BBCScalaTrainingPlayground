@@ -103,7 +103,7 @@ object Main extends App {
 
   "---------------4-----------------"
 
-  def fold[F[_] <: Seq[_], A, B](l: F[_] )(end: B, f: (A,B) => B): B = {
+  def fold[A, Z <: Seq[A], B](l: Z )(end: B, f: (A,B) => B): B = {
     l match {
       case h :: t => f(h, fold(t)(end, f))
       case Nil => f(l, end)
@@ -111,7 +111,7 @@ object Main extends App {
   }
 
   def sum(l: List[Option[Int]]) = {
-
+    fold(l)(0, (a: Option[Int], b: Option[Int]) => {a.getOrElse(0) + b.getOrElse(0)} )
   }
 
 }
