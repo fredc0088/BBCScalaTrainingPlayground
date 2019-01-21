@@ -2,6 +2,8 @@ package Lab05
 
 import Lab05.Types.Monad
 
+import scala.util.Random
+
 /**
   * 1. Use your ADT for the Binary Tree from the earlier exercise. Define a map method for the type, which will operate on all the leaf nodes.
   *     Define an instance of the Functor typeclass for the tree and verify the operation of your map method.
@@ -51,16 +53,65 @@ object Main extends App {
 
   "---------------2-----------------"
 
-  case class Id[T](v: T) extends Monad[Id[T]]{
+  case class Id[A](v: A) extends Monad[Id[A]]{
 
-    override def unit[T](a: => T): Id[T] = Id(v)
+    self =>
 
-    override def map[A, B](fa: Id[A])(f: A => B): Id[B] = Id(f(fa))
+    override def unit[A](a: => A): Id[A] = Id(v)
 
-    def map[B](f: T => B) = map(this)(f)
+    def map[B](f: A => B) = map(self)(f)
 
     override def flatMap[A, B](fa: Id[A])(f: A => Id[B]): Id[B] = f(v)
 
     def flatMap[A, B](f: A => Id[B]): Id[B] = f(v)
   }
+
+  "---------------3-----------------"
+
+  trait Generator[+T] {
+    self =>
+    def generate: T
+    def map[S](f: T => S): Generator[S] = new Generator[S] {
+      def generate = f(self.generate)
+    }
+  def flatMap[S](f: T => Generator[S]): Generator[S] =
+    new Generator[S] {
+      def generate = f(self.generate).generate
+    }
+  }
+
+  val randomIntegersGenerator = new Generator[Int] {
+    val rand = new java.util.Random
+    def generate = rand.nextInt()
+  }
+
+  val randomBooleanGenerator = new Generator[Boolean] {
+    private val rand = new Random()
+    override def generate: Boolean = rand.nextBoolean()
+  }
+
+  case class TupleRandomGenerator[X,Y](gen1: Generator[X], gen2: Generator[Y]) extends Generator[(X,Y)] {
+    override def generate: (X, Y) = (gen1.generate, gen2.generate)
+  }
+
+  val tupleIntBooleanGenerator = TupleRandomGenerator(randomIntegersGenerator, randomBooleanGenerator)
+
+  val randomListGenerator = new Generator[List[Int]] {
+    private val rand = new Random()
+    override def generate: List[Int] = for(0 <- rand.nextInt()) yield rand.nextInt()
+  }
+
+  "---------------4-----------------"
+
+  def fold[F[_] <: Seq[_], A, B](l: F[_] )(end: B, f: (A,B) => B): B = {
+    l match {
+      case h :: t => f(h, fold(t)(end, f))
+      case Nil => f(l, end)
+    }
+  }
+
+  def sum(l: List[Option[Int]]) = {
+
+  }
+
 }
